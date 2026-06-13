@@ -1,0 +1,73 @@
+{
+  "buildFiles": [
+    "/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/CMakeLists.txt",
+    "/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/CMakeLists.txt",
+    "/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/cmake/build-info.cmake",
+    "/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/cmake/whisper-config.cmake.in",
+    "/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/ggml/CMakeLists.txt",
+    "/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/ggml/cmake/common.cmake",
+    "/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/ggml/cmake/ggml-config.cmake.in",
+    "/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/ggml/src/CMakeLists.txt",
+    "/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/ggml/src/ggml-cpu/CMakeLists.txt",
+    "/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/src/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/sleepycoffee/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/sleepycoffee/Documents/glassnote-android/app/.cxx/Debug/q346k2dg/arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/sleepycoffee/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/sleepycoffee/Documents/glassnote-android/app/.cxx/Debug/q346k2dg/arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "ggml::@74253485f3a7ec30fb13": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "ggml",
+      "output": "/Users/sleepycoffee/Documents/glassnote-android/app/.cxx/Debug/q346k2dg/arm64-v8a/whisper.cpp/ggml/src/libggml.a"
+    },
+    "ggml-base::@74253485f3a7ec30fb13": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "ggml-base",
+      "output": "/Users/sleepycoffee/Documents/glassnote-android/app/.cxx/Debug/q346k2dg/arm64-v8a/whisper.cpp/ggml/src/libggml-base.a"
+    },
+    "ggml-cpu::@74253485f3a7ec30fb13": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "ggml-cpu",
+      "output": "/Users/sleepycoffee/Documents/glassnote-android/app/.cxx/Debug/q346k2dg/arm64-v8a/whisper.cpp/ggml/src/libggml-cpu.a"
+    },
+    "glassnote::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "glassnote",
+      "output": "/Users/sleepycoffee/Documents/glassnote-android/app/build/intermediates/cxx/Debug/q346k2dg/obj/arm64-v8a/libglassnote.so",
+      "runtimeFiles": []
+    },
+    "whisper::@a8a66f5e841e94d32cb3": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "whisper",
+      "output": "/Users/sleepycoffee/Documents/glassnote-android/app/.cxx/Debug/q346k2dg/arm64-v8a/whisper.cpp/src/libwhisper.a"
+    }
+  },
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "/Users/sleepycoffee/Library/Android/sdk/ndk/26.3.11579264/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang.lld",
+      "cppCompilerExecutable": "/Users/sleepycoffee/Library/Android/sdk/ndk/26.3.11579264/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++.lld"
+    }
+  },
+  "cFileExtensions": [
+    "c"
+  ],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

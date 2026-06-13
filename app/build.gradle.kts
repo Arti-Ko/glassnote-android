@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "com.sleepycoffee.glassnote"
     compileSdk = 34
+    ndkVersion = "26.3.11579264"
 
     defaultConfig {
         applicationId = "com.sleepycoffee.glassnote"
@@ -15,6 +16,27 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "0.1"
+        ndk { abiFilters += "arm64-v8a" }
+        externalNativeBuild {
+            cmake {
+                cppFlags += "-std=c++17"
+                arguments += listOf(
+                    "-DGGML_OPENMP=OFF",
+                    "-DGGML_NATIVE=OFF",
+                    "-DWHISPER_BUILD_TESTS=OFF",
+                    "-DWHISPER_BUILD_EXAMPLES=OFF",
+                    "-DGGML_BUILD_TESTS=OFF",
+                    "-DGGML_BUILD_EXAMPLES=OFF",
+                    "-DBUILD_SHARED_LIBS=OFF"
+                )
+            }
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
     buildFeatures { compose = true }
     compileOptions {

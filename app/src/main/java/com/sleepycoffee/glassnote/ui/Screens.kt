@@ -25,6 +25,7 @@ import com.sleepycoffee.glassnote.data.Settings
 import com.sleepycoffee.glassnote.data.StoredNote
 import com.sleepycoffee.glassnote.record.RecordingController
 import com.sleepycoffee.glassnote.record.RecordingService
+import com.sleepycoffee.glassnote.transcription.ModelManager
 import kotlinx.coroutines.delay
 import java.io.File
 import java.text.SimpleDateFormat
@@ -85,6 +86,7 @@ fun LibraryScreen(onOpen: (String) -> Unit, onSettings: () -> Unit) {
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp)
                 )
+                ModelBanner()
                 if (state.transcribing > 0) {
                     AssistChip(
                         onClick = {},
@@ -181,6 +183,7 @@ fun NoteDetailScreen(id: String, onBack: () -> Unit) {
     val stored = notes.firstOrNull { it.id == id }
     if (stored == null) { onBack(); return }
     var text by remember(id) { mutableStateOf(stored.transcript) }
+    val tState by RecordingController.state.collectAsState()
 
     LaunchedEffect(text) {
         if (text != stored.transcript) { delay(800); RecordingController.updateTranscript(text, stored) }
@@ -211,6 +214,20 @@ fun NoteDetailScreen(id: String, onBack: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(12.dp))
                 if (stored.audio.exists()) PlayerBar(stored.audio)
+                if (text.isBlank()) {
+                    if (tState.transcribing > 0) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                            Text("Расшифровка…")
+                        }
+                    } else {
+                        Button(onClick = { RecordingController.retranscribe(stored) }) {
+                            Icon(Icons.Filled.GraphicEq, null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Расшифровать")
+                        }
+                    }
+                }
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
                     text, { text = it },
@@ -333,3 +350,23 @@ private fun copyToClipboard(ctx: Context, text: String) {
 }
 
 fun markdown(s: StoredNote, text: String) = "# ${s.note.title}\n\n${text}\n"
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ModelBanner() {
+    val st by ModelManager.state.collectAsState()
+    when (val m = st) {
+        is ModelManager.State.Downloading -> AssistChip(
+            onClick = {},
+            label = { Text("Загрузка модели распознавания: ${m.percent}%") },
+            leadingIcon = { CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp) },
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        is ModelManager.State.Failed -> AssistChip(
+            onClick = {},
+            label = { Text("Модель не загружена: ${m.message}") },
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        else -> {}
+    }
+}

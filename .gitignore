@@ -1,7 +1,9 @@
+*.bin
 *.iml
-.gradle/
-/local.properties
-/build
-/app/build
-.idea/
 .DS_Store
+.gradle/
+.idea/
+/app/build
+/build
+/local.properties
+app/src/main/cpp/whisper.cpp/build*/

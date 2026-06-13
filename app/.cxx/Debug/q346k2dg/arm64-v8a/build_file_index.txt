@@ -1,0 +1,10 @@
+/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/CMakeLists.txt
+/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/CMakeLists.txt
+/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/cmake/build-info.cmake
+/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/cmake/whisper-config.cmake.in
+/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/ggml/CMakeLists.txt
+/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/ggml/cmake/common.cmake
+/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/ggml/cmake/ggml-config.cmake.in
+/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/ggml/src/CMakeLists.txt
+/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/ggml/src/ggml-cpu/CMakeLists.txt
+/Users/sleepycoffee/Documents/glassnote-android/app/src/main/cpp/whisper.cpp/src/CMakeLists.txt
