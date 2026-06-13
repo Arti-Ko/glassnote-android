@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -20,11 +21,22 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import com.sleepycoffee.glassnote.R
 import com.sleepycoffee.glassnote.data.ThemeMode
 
-/** Палитра iOS 27 — отдельные значения для светлой и тёмной темы. */
+/** Inter — легальный SF Pro-подобный шрифт (с кириллицей). */
+val Inter = FontFamily(
+    Font(R.font.inter_regular, FontWeight.Normal),
+    Font(R.font.inter_medium, FontWeight.Medium),
+    Font(R.font.inter_semibold, FontWeight.SemiBold),
+    Font(R.font.inter_bold, FontWeight.Bold)
+)
+
 data class Palette(
     val groupedBg: Color, val card: Color, val label: Color, val secondary: Color,
     val tertiary: Color, val separator: Color, val blue: Color, val green: Color,
@@ -35,10 +47,10 @@ data class Palette(
 val LightPalette = Palette(
     groupedBg = Color(0xFFF2F2F7), card = Color(0xFFFFFFFF), label = Color(0xFF000000),
     secondary = Color(0xFF3C3C43).copy(alpha = 0.60f), tertiary = Color(0xFF3C3C43).copy(alpha = 0.30f),
-    separator = Color(0xFF3C3C43).copy(alpha = 0.20f), blue = Color(0xFF007AFF),
+    separator = Color(0xFF3C3C43).copy(alpha = 0.22f), blue = Color(0xFF007AFF),
     green = Color(0xFF34C759), red = Color(0xFFFF3B30), fieldFill = Color(0xFF767680).copy(alpha = 0.12f),
     glassFill = Color.White.copy(alpha = 0.80f), glassBorder = Color.White.copy(alpha = 0.90f),
-    cardShadow = Color.Black.copy(alpha = 0.06f), dark = false
+    cardShadow = Color.Black.copy(alpha = 0.05f), dark = false
 )
 
 val DarkPalette = Palette(
@@ -52,7 +64,6 @@ val DarkPalette = Palette(
 
 val LocalPalette = staticCompositionLocalOf { LightPalette }
 
-/** Живое состояние выбранной темы (Система/Светлая/Тёмная). */
 object ThemeState {
     var mode by mutableStateOf(ThemeMode.SYSTEM)
 }
@@ -81,16 +92,17 @@ fun GlassnoteTheme(content: @Composable () -> Unit) {
         }
     }
 
-    CompositionLocalProvider(LocalPalette provides p) {
-        MaterialTheme(colorScheme = scheme, content = content)
+    MaterialTheme(colorScheme = scheme) {
+        CompositionLocalProvider(
+            LocalPalette provides p,
+            LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = Inter, color = p.label)
+        ) { content() }
     }
 }
 
-/** Плавающая «Liquid Glass» капсула. */
 fun Modifier.iosGlass(shape: Shape, p: Palette): Modifier = this
     .shadow(10.dp, shape, clip = false, spotColor = Color.Black.copy(alpha = if (p.dark) 0.45f else 0.18f))
     .clip(shape).background(p.glassFill).border(0.7.dp, p.glassBorder, shape)
 
-/** Inset-карточка списка. */
 fun Modifier.insetCard(shape: Shape, p: Palette): Modifier = this
-    .shadow(4.dp, shape, clip = false, spotColor = p.cardShadow).clip(shape).background(p.card)
+    .shadow(if (p.dark) 0.dp else 4.dp, shape, clip = false, spotColor = p.cardShadow).clip(shape).background(p.card)
