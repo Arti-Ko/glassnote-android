@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Glassnote</string>
+    <string name="tile_label">Быстрая заметка</string>
+</resources>
