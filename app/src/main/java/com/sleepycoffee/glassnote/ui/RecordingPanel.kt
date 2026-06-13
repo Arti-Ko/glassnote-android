@@ -27,35 +27,27 @@ import androidx.compose.ui.unit.sp
 import com.sleepycoffee.glassnote.record.RecordingController
 import com.sleepycoffee.glassnote.record.RecordingService
 
-/** iOS-шит записи снизу: светлый материал, грабер, волна, таймер, стоп. */
 @Composable
 fun RecordingPanelSheet(onClose: () -> Unit) {
+    val c = LocalPalette.current
     val ctx = LocalContext.current
     val state by RecordingController.state.collectAsState()
     val shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
 
-    Box(
-        Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.25f)).clickable(onClick = onClose),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        Column(
-            Modifier.fillMaxWidth().clip(shape).background(IOS.card).navigationBarsPadding()
-                .padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 20.dp)
-        ) {
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.25f)).clickable(onClick = onClose), contentAlignment = Alignment.BottomCenter) {
+        Column(Modifier.fillMaxWidth().clip(shape).background(c.card).navigationBarsPadding().padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 20.dp)) {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Box(Modifier.size(width = 38.dp, height = 5.dp).clip(CircleShape).background(IOS.tertiary))
+                Box(Modifier.size(width = 38.dp, height = 5.dp).clip(CircleShape).background(c.tertiary))
             }
             Spacer(Modifier.height(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                PulsingDot()
-                WaveformBars(state.levels, Modifier.weight(1f).height(38.dp))
-                Text(mmss(state.elapsed), color = IOS.label, fontWeight = FontWeight.Medium, fontSize = 17.sp)
-                Box(Modifier.size(40.dp).clip(CircleShape).background(IOS.fieldFill).clickable(onClick = onClose),
-                    contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.KeyboardArrowDown, "Свернуть", tint = IOS.secondary)
+                PulsingDot(c.red)
+                WaveformBars(state.levels, c.blue, Modifier.weight(1f).height(38.dp))
+                Text(mmss(state.elapsed), color = c.label, fontWeight = FontWeight.Medium, fontSize = 17.sp)
+                Box(Modifier.size(40.dp).clip(CircleShape).background(c.fieldFill).clickable(onClick = onClose), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Rounded.KeyboardArrowDown, "Свернуть", tint = c.secondary)
                 }
-                Box(Modifier.size(52.dp).clip(CircleShape).background(IOS.red)
-                    .clickable { RecordingService.stop(ctx); onClose() }, contentAlignment = Alignment.Center) {
+                Box(Modifier.size(52.dp).clip(CircleShape).background(c.red).clickable { RecordingService.stop(ctx); onClose() }, contentAlignment = Alignment.Center) {
                     Icon(Icons.Rounded.Stop, "Стоп", tint = Color.White)
                 }
             }
@@ -64,22 +56,21 @@ fun RecordingPanelSheet(onClose: () -> Unit) {
 }
 
 @Composable
-private fun PulsingDot() {
+private fun PulsingDot(color: Color) {
     val t = rememberInfiniteTransition(label = "p")
     val scale by t.animateFloat(0.7f, 1f, infiniteRepeatable(tween(800), RepeatMode.Reverse), label = "s")
-    Box(Modifier.size((11 * scale).dp).clip(CircleShape).background(IOS.red))
+    Box(Modifier.size((11 * scale).dp).clip(CircleShape).background(color))
 }
 
 @Composable
-fun WaveformBars(levels: List<Float>, modifier: Modifier = Modifier) {
+fun WaveformBars(levels: List<Float>, color: Color, modifier: Modifier = Modifier) {
     Canvas(modifier) {
         val n = levels.size.coerceAtLeast(1)
         val gap = 3.dp.toPx()
         val bw = ((size.width - gap * (n - 1)) / n).coerceAtLeast(1f)
         levels.forEachIndexed { i, lv ->
             val h = (lv * size.height).coerceAtLeast(3f)
-            drawRoundRect(color = IOS.blue.copy(alpha = 0.9f),
-                topLeft = Offset(i * (bw + gap), (size.height - h) / 2f),
+            drawRoundRect(color = color.copy(alpha = 0.9f), topLeft = Offset(i * (bw + gap), (size.height - h) / 2f),
                 size = Size(bw, h), cornerRadius = CornerRadius(bw / 2, bw / 2))
         }
     }

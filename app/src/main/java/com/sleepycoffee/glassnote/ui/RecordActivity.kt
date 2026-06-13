@@ -8,30 +8,22 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import com.sleepycoffee.glassnote.data.Settings
 import com.sleepycoffee.glassnote.record.RecordingController
 import com.sleepycoffee.glassnote.record.RecordingService
 
-/** Прозрачная активность со стеклянной плашкой; показывается поверх локскрина. */
 class RecordActivity : ComponentActivity() {
-
-    private val askMic = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) beginRecording() else finish()
-    }
+    private val askMic = registerForActivityResult(ActivityResultContracts.RequestPermission()) { g -> if (g) begin() else finish() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (Build.VERSION.SDK_INT >= 27) { setShowWhenLocked(true); setTurnScreenOn(true) }
+        ThemeState.mode = Settings.themeMode(this)
         RecordingController.init(this)
-
         setContent { GlassnoteTheme { RecordingPanelSheet(onClose = { finish() }) } }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-            == PackageManager.PERMISSION_GRANTED
-        ) beginRecording()
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) begin()
         else askMic.launch(Manifest.permission.RECORD_AUDIO)
     }
 
-    private fun beginRecording() {
-        if (!RecordingController.isRecording) RecordingService.start(this)
-    }
+    private fun begin() { if (!RecordingController.isRecording) RecordingService.start(this) }
 }
