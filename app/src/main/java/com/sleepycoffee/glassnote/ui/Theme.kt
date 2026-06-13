@@ -2,35 +2,40 @@ package com.sleepycoffee.glassnote.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Typography
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
-val Accent = Color(0xFF7C84FF)
+/** Токены iOS 27 (Liquid Glass, светлая тема). */
+object IOS {
+    val groupedBg = Color(0xFFF2F2F7)
+    val card = Color(0xFFFFFFFF)
+    val label = Color(0xFF000000)
+    val secondary = Color(0xFF3C3C43).copy(alpha = 0.60f)
+    val tertiary = Color(0xFF3C3C43).copy(alpha = 0.30f)
+    val separator = Color(0xFF3C3C43).copy(alpha = 0.20f)
+    val blue = Color(0xFF007AFF)
+    val green = Color(0xFF34C759)
+    val red = Color(0xFFFF3B30)
+    val fieldFill = Color(0xFF767680).copy(alpha = 0.12f)
+}
 
-private val Scheme = darkColorScheme(
-    primary = Accent,
-    secondary = Accent,
-    background = Color(0xFF07070C),
-    surface = Color(0xFF101018),
-    onBackground = Color(0xFFF2F3FF),
-    onSurface = Color(0xFFF2F3FF),
-    onSurfaceVariant = Color(0xCCFFFFFF)
+val Accent = IOS.blue
+
+private val Scheme = lightColorScheme(
+    primary = IOS.blue,
+    secondary = IOS.blue,
+    background = IOS.groupedBg,
+    surface = IOS.card,
+    onBackground = IOS.label,
+    onSurface = IOS.label,
+    onSurfaceVariant = IOS.secondary
 )
 
 @Composable
@@ -38,45 +43,15 @@ fun GlassnoteTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = Scheme, content = content)
 }
 
-/**
- * Атмосферный фон в духе macOS Sonoma: тёмная база + крупные размытые
- * цветные «капли» света, сквозь которые просвечивает матовое стекло панелей.
- */
-@Composable
-fun AmbientBackground(content: @Composable () -> Unit) {
-    Box(Modifier.fillMaxSize().background(Color(0xFF07070C))) {
-        Box(
-            Modifier.size(460.dp).offset((-120).dp, (-110).dp).blur(130.dp)
-                .background(Color(0xFF5B62F5).copy(alpha = 0.55f), CircleShape)
-        )
-        Box(
-            Modifier.align(Alignment.TopEnd).size(380.dp).offset(110.dp, (-70).dp).blur(130.dp)
-                .background(Color(0xFFB14DFF).copy(alpha = 0.45f), CircleShape)
-        )
-        Box(
-            Modifier.align(Alignment.BottomStart).size(420.dp).offset((-90).dp, 120.dp).blur(150.dp)
-                .background(Color(0xFF1FC8C0).copy(alpha = 0.30f), CircleShape)
-        )
-        Box(
-            Modifier.align(Alignment.BottomEnd).size(340.dp).offset(90.dp, 90.dp).blur(140.dp)
-                .background(Color(0xFFFF6CA8).copy(alpha = 0.26f), CircleShape)
-        )
-        content()
-    }
-}
-
-/** Матовое стекло: лёгкая вертикальная подсветка + тонкая светлая грань + мягкая тень. */
-fun Modifier.glass(
-    shape: Shape,
-    highlight: Float = 0.14f,
-    base: Float = 0.05f,
-    borderAlpha: Float = 0.22f,
-): Modifier = this
-    .shadow(elevation = 14.dp, shape = shape, clip = false)
+/** Плавающая «Liquid Glass» капсула тулбара — полупрозрачное стекло + грань + мягкая тень. */
+fun Modifier.iosGlass(shape: Shape): Modifier = this
+    .shadow(10.dp, shape, clip = false, spotColor = Color.Black.copy(alpha = 0.18f), ambientColor = Color.Black.copy(alpha = 0.12f))
     .clip(shape)
-    .background(
-        Brush.verticalGradient(
-            listOf(Color.White.copy(alpha = highlight), Color.White.copy(alpha = base))
-        )
-    )
-    .border(1.dp, Color.White.copy(alpha = borderAlpha), shape)
+    .background(Color.White.copy(alpha = 0.80f))
+    .border(0.7.dp, Color.White.copy(alpha = 0.9f), shape)
+
+/** Белая inset-карточка списка iOS. */
+fun Modifier.insetCard(shape: Shape): Modifier = this
+    .shadow(4.dp, shape, clip = false, spotColor = Color.Black.copy(alpha = 0.06f), ambientColor = Color.Black.copy(alpha = 0.04f))
+    .clip(shape)
+    .background(IOS.card)
