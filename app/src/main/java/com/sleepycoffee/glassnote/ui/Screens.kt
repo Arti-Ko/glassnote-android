@@ -40,6 +40,8 @@ import com.sleepycoffee.glassnote.record.RecordingController
 import com.sleepycoffee.glassnote.record.RecordingService
 import com.sleepycoffee.glassnote.transcription.ModelManager
 import com.sleepycoffee.glassnote.update.UpdateChecker
+import com.sleepycoffee.glassnote.update.UpdateState
+import kotlinx.coroutines.launch
 import android.content.Intent
 import android.net.Uri
 import kotlinx.coroutines.delay
@@ -330,6 +332,9 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
         }
         Spacer(Modifier.height(22.dp))
+        SectionHeader("ОБНОВЛЕНИЯ")
+        UpdatesSection()
+        Spacer(Modifier.height(22.dp))
         SectionHeader("ПАПКА ЗАМЕТОК")
         Column(Modifier.fillMaxWidth().insetCard(Group, c).padding(16.dp)) {
             Text(File(ctx.getExternalFilesDir(null), "Glassnote").absolutePath, color = c.secondary, fontSize = 13.sp)
@@ -384,20 +389,61 @@ fun markdown(s: StoredNote, text: String) = "# ${s.note.title}\n\n${text}\n"
 private fun UpdateBanner() {
     val c = LocalPalette.current
     val ctx = LocalContext.current
-    val upd by UpdateChecker.update.collectAsState()
+    val scope = rememberCoroutineScope()
+    val st by UpdateChecker.state.collectAsState()
+    val upd by UpdateChecker.available.collectAsState()
     upd?.let { info ->
         Row(
             Modifier.fillMaxWidth().insetCard(Group, c)
-                .clickable { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(info.apkUrl ?: info.pageUrl))) }
+                .clickable { scope.launch { UpdateChecker.install(ctx) } }
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Icon(Icons.Rounded.SystemUpdate, null, tint = c.blue)
             Column(Modifier.weight(1f)) {
                 Text("Доступно обновление ${info.version}", color = c.label, fontSize = 15.sp, fontWeight = FontWeight.Medium)
-                Text("Нажмите, чтобы скачать", color = c.secondary, fontSize = 13.sp)
+                val sub = (st as? UpdateState.Downloading)?.let { "Загрузка ${it.percent}%" } ?: "Нажмите, чтобы установить"
+                Text(sub, color = c.secondary, fontSize = 13.sp)
             }
             Icon(Icons.Rounded.ChevronRight, null, tint = c.tertiary)
+        }
+    }
+}
+
+@Composable
+private fun UpdatesSection() {
+    val c = LocalPalette.current
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val st by UpdateChecker.state.collectAsState()
+    Column(Modifier.fillMaxWidth().insetCard(Group, c)) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 44.dp).padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("Версия", color = c.label, fontSize = 17.sp, modifier = Modifier.weight(1f))
+            Text(UpdateChecker.currentVersion, color = c.secondary, fontSize = 17.sp)
+        }
+        RowDivider(c)
+        Row(
+            Modifier.fillMaxWidth().clickable {
+                when (st) {
+                    is UpdateState.Available -> scope.launch { UpdateChecker.install(ctx) }
+                    is UpdateState.Downloading -> {}
+                    else -> scope.launch { UpdateChecker.check(manual = true) }
+                }
+            }.heightIn(min = 44.dp).padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val label = when (val s = st) {
+                is UpdateState.Available -> "Установить ${s.info.version}"
+                is UpdateState.Downloading -> "Загрузка ${s.percent}%"
+                else -> "Проверить обновления"
+            }
+            Text(label, color = c.blue, fontSize = 17.sp, modifier = Modifier.weight(1f))
+            when (st) {
+                is UpdateState.Checking, is UpdateState.Downloading -> CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = c.blue)
+                is UpdateState.UpToDate -> Text("Актуальная", color = c.secondary, fontSize = 14.sp)
+                is UpdateState.Error -> Icon(Icons.Rounded.WarningAmber, null, tint = c.red)
+                else -> {}
+            }
         }
     }
 }

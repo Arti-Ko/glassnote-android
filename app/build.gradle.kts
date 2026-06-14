@@ -10,12 +10,21 @@ android {
     compileSdk = 34
     ndkVersion = "26.3.11579264"
 
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("../glassnote-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     defaultConfig {
         applicationId = "com.sleepycoffee.glassnote"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
         ndk { abiFilters += "arm64-v8a" }
         externalNativeBuild {
             cmake {
