@@ -45,6 +45,7 @@ object RecordingController {
         recorder = AudioRecorder(appContext)
         transcriber = WhisperTranscriber { ModelManager.modelFile(appContext).takeIf { it.exists() } }
         _notes.value = store.loadAll()
+        QuickControl.show(appContext)
         // Тянем модель в фоне при первом старте.
         scope.launch { ModelManager.ensure(appContext) }
         scope.launch { com.sleepycoffee.glassnote.update.UpdateChecker.check() }
