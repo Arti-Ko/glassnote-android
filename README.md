@@ -1,48 +1,69 @@
-# Glassnote — Android
+<div align="center">
 
-Диктофон-архив голосовых заметок. Порт macOS-версии (`~/Documents/glassnote`)
-с тем же форматом хранения, чтобы заметки были sync-ready между платформами.
+<img src="docs/icon.png" width="120" alt="Glassnote"/>
 
-## Что уже есть (v0.1 scaffold)
+# Glassnote для Android
 
-- **Запись**: `MediaRecorder` → `audio.m4a` (AAC mono 48kHz) — формат как на macOS.
-- **Хранилище**: заметка = папка `yyyy-MM-dd_HH-mm-ss/` с `audio.m4a + note.json +
-  transcript.md`. Схема `note.json` 1:1 с macOS (id, createdAt ISO8601, durationSec,
-  language, model, title, edited, segments[start,end,text,speaker]).
-- **Quick Settings тайл** «Быстрая заметка» (`QuickRecordTileService`) — открывает
-  плашку записи, в т.ч. с экрана блокировки (`unlockAndRun` / `startActivityAndCollapse`).
-- **Стеклянная плашка** снизу (`RecordActivity` + `RecordingPanelSheet`), показывается
-  поверх локскрина (`showWhenLocked`), с волной/таймером/стоп/свернуть.
-- **Foreground-сервис** (`RecordingService`, type=microphone) — запись переживает
-  блокировку и сворачивание.
-- **Главное окно** (Compose): список, поиск (подстрока), деталь с правкой текста
-  и автосохранением, копирование в Markdown, удаление.
-- **Настройки**: принудительный язык записи (auto/ru/en) — как на macOS.
+**Голосовые заметки с локальной расшифровкой. Полностью офлайн, дизайн в стиле iOS.**
 
-## Что заглушено
+[![Release](https://img.shields.io/github/v/release/Arti-Ko/glassnote-android?label=Скачать&style=for-the-badge)](https://github.com/Arti-Ko/glassnote-android/releases/latest)
+[![Platform](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white)](#)
 
-- **Транскрипция**: `PendingTranscriber` возвращает пустой результат. Записи
-  сохраняются и архивируются уже сейчас; текст появится после интеграции whisper.cpp.
+<img src="docs/screenshot.png" width="280" alt="Скриншот"/>
 
-## Следующие шаги
+</div>
 
-1. **whisper.cpp через JNI**: добавить нативный модуль (`externalNativeBuild` +
-   CMake, NDK), собрать `libwhisper`, реализовать `WhisperBridge : Transcriber`,
-   передавать `languageCode` из `Settings`. Модель ggml (например `ggml-small`/`medium`
-   для ru) скачивать в `filesDir` при первом запуске.
-2. **Gradle wrapper**: открыть проект в Android Studio (оно дозагрузит wrapper-jar),
-   либо `gradle wrapper` при установленном Gradle.
-3. **Поиск**: заменить подстроку на Room FTS4 (паритет с SQLite FTS5 на macOS).
-4. **Диаризация** (v2): поле `speaker` в схеме уже заложено.
-5. **Синхронизация**: формат папок готов под общий синк (SAF/MediaStore/Syncthing).
+## Что это
 
-## Сборка
+Glassnote записывает голос и превращает его в текст **на самом устройстве** — без интернета, без отправки аудио на серверы. Каждая заметка хранится как папка с аудио, расшифровкой и метаданными. Дизайн повторяет язык Apple (iOS 27 / Voice Memos): крупные заголовки, сгруппированные списки, шрифт Inter.
+
+## Возможности
+
+- 🎙 **Запись голоса** в один тап — кнопка как в Apple Voice Memos
+- 🧠 **Локальная расшифровка** через [whisper.cpp](https://github.com/ggerganov/whisper.cpp) (модель `small-q5_1`)
+- 🌍 **Языки** — русский, английский или автоопределение
+- 🔒 **Полный офлайн** — аудио никогда не покидает телефон
+- ⚡ **Плитка быстрых настроек** — старт/стоп записи прямо со шторки, даже с экрана блокировки, без открытия приложения
+- 🔎 Поиск, правка расшифровки, копирование в Markdown
+- 🎨 Светлая и тёмная тема (переключатель в настройках)
+- 🔄 Проверка обновлений через GitHub Releases
+
+## Как работает расшифровка
+
+Аудио пишется в `m4a`, декодируется в PCM 16 кГц и обрабатывается нативной сборкой whisper.cpp (`arm64-v8a`, beam search). Модель (~190 МБ) скачивается один раз при первом запуске в приватную папку приложения.
+
+## Установка
+
+Скачайте `.apk` из [последнего релиза](https://github.com/Arti-Ko/glassnote-android/releases/latest) и установите (разрешите установку из неизвестных источников). Приложение само сообщит, когда выйдет новая версия.
+
+## Сборка из исходников
 
 ```bash
-# открыть в Android Studio (рекомендуется) — настроит SDK/wrapper автоматически,
-# либо вручную при наличии Gradle:
-cd ~/Documents/glassnote-android
-gradle wrapper
-./gradlew assembleDebug
+git clone https://github.com/Arti-Ko/glassnote-android
+cd glassnote-android
+./gradlew :app:assembleDebug
+# APK: app/build/outputs/apk/debug/app-debug.apk
 ```
-Требуется Android SDK (compileSdk 34), minSdk 26.
+Требуется Android SDK 34, NDK 26.3, CMake 3.22 (для нативной сборки whisper.cpp).
+
+## Хранение заметок
+
+```
+Android/data/com.sleepycoffee.glassnote/files/Glassnote/<дата-время>/
+├── audio.m4a        # запись
+├── note.json        # метаданные + сегменты
+└── transcript.md    # текст
+```
+Формат идентичен macOS-версии — заметки готовы к синхронизации.
+
+## Технологии
+
+Kotlin · Jetpack Compose · whisper.cpp (JNI/CMake/NDK) · MediaRecorder · Foreground Service · Quick Settings Tile
+
+## Лицензии
+
+Код — MIT. Шрифт [Inter](https://github.com/rsms/inter) — SIL OFL. whisper.cpp — MIT.
+
+---
+
+🖥 Версия для macOS: [Arti-Ko/glassnote](https://github.com/Arti-Ko/glassnote)

@@ -47,6 +47,7 @@ object RecordingController {
         _notes.value = store.loadAll()
         // Тянем модель в фоне при первом старте.
         scope.launch { ModelManager.ensure(appContext) }
+        scope.launch { com.sleepycoffee.glassnote.update.UpdateChecker.check() }
     }
 
     val isRecording get() = _state.value.recording

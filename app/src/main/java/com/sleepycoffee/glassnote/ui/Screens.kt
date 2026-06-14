@@ -39,6 +39,9 @@ import com.sleepycoffee.glassnote.data.ThemeMode
 import com.sleepycoffee.glassnote.record.RecordingController
 import com.sleepycoffee.glassnote.record.RecordingService
 import com.sleepycoffee.glassnote.transcription.ModelManager
+import com.sleepycoffee.glassnote.update.UpdateChecker
+import android.content.Intent
+import android.net.Uri
 import kotlinx.coroutines.delay
 import java.io.File
 import java.text.SimpleDateFormat
@@ -90,6 +93,7 @@ fun LibraryScreen(onOpen: (String) -> Unit, onSettings: () -> Unit) {
             }
             item { SearchField(query) { query = it } }
             item { ModelBanner() }
+            item { UpdateBanner() }
             if (filtered.isEmpty()) item { EmptyState(query.isBlank()) }
             else item { GroupedNotes(filtered, onOpen) }
         }
@@ -375,3 +379,25 @@ private fun copyToClipboard(ctx: Context, text: String) {
     (ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("note", text))
 }
 fun markdown(s: StoredNote, text: String) = "# ${s.note.title}\n\n${text}\n"
+
+@Composable
+private fun UpdateBanner() {
+    val c = LocalPalette.current
+    val ctx = LocalContext.current
+    val upd by UpdateChecker.update.collectAsState()
+    upd?.let { info ->
+        Row(
+            Modifier.fillMaxWidth().insetCard(Group, c)
+                .clickable { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(info.apkUrl ?: info.pageUrl))) }
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Icon(Icons.Rounded.SystemUpdate, null, tint = c.blue)
+            Column(Modifier.weight(1f)) {
+                Text("Доступно обновление ${info.version}", color = c.label, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                Text("Нажмите, чтобы скачать", color = c.secondary, fontSize = 13.sp)
+            }
+            Icon(Icons.Rounded.ChevronRight, null, tint = c.tertiary)
+        }
+    }
+}

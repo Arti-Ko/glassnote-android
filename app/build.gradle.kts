@@ -15,7 +15,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "0.1"
+        versionName = "0.1.0"
         ndk { abiFilters += "arm64-v8a" }
         externalNativeBuild {
             cmake {
@@ -38,7 +38,7 @@ android {
             version = "3.22.1"
         }
     }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
