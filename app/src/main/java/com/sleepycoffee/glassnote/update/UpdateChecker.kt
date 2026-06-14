@@ -43,6 +43,7 @@ object UpdateChecker {
                 val conn = (URL("https://api.github.com/repos/$REPO/releases/latest").openConnection() as HttpURLConnection).apply {
                     connectTimeout = 10_000; readTimeout = 10_000
                     setRequestProperty("Accept", "application/vnd.github+json")
+                    setRequestProperty("User-Agent", "Glassnote-Android")
                 }
                 if (conn.responseCode != 200) { if (manual) _state.value = UpdateState.Error("HTTP ${conn.responseCode}"); return@runCatching }
                 val json = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
@@ -62,7 +63,7 @@ object UpdateChecker {
                 } else if (manual) {
                     _state.value = UpdateState.UpToDate
                 }
-            }.onFailure { if (manual) _state.value = UpdateState.Error(it.message ?: "ошибка сети") }
+            }.onFailure { android.util.Log.w("GlassnoteUpd","check failed",it); if (manual) _state.value = UpdateState.Error(it.message ?: "ошибка сети") }
         }
     }
 
@@ -76,7 +77,7 @@ object UpdateChecker {
                 _state.value = UpdateState.Downloading(0)
                 val file = File(ctx.cacheDir, "glassnote-update.apk")
                 val conn = (URL(url).openConnection() as HttpURLConnection).apply {
-                    connectTimeout = 15_000; readTimeout = 30_000; instanceFollowRedirects = true
+                    connectTimeout = 15_000; readTimeout = 30_000; instanceFollowRedirects = true; setRequestProperty("User-Agent", "Glassnote-Android")
                 }
                 val total = conn.contentLengthLong.takeIf { it > 0 } ?: -1L
                 conn.inputStream.use { input ->
