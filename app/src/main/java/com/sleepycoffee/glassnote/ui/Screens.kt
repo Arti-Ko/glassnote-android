@@ -38,6 +38,7 @@ import com.sleepycoffee.glassnote.data.StoredNote
 import com.sleepycoffee.glassnote.data.ThemeMode
 import com.sleepycoffee.glassnote.record.RecordingController
 import com.sleepycoffee.glassnote.record.RecordingService
+import com.sleepycoffee.glassnote.record.QuickControl
 import com.sleepycoffee.glassnote.transcription.ModelManager
 import com.sleepycoffee.glassnote.update.UpdateChecker
 import com.sleepycoffee.glassnote.update.UpdateState
@@ -334,6 +335,7 @@ fun SettingsScreen(onBack: () -> Unit) {
         Spacer(Modifier.height(22.dp))
         SectionHeader("ОБНОВЛЕНИЯ")
         UpdatesSection()
+        QuickButtonToggle()
         Spacer(Modifier.height(22.dp))
         SectionHeader("ПАПКА ЗАМЕТОК")
         Column(Modifier.fillMaxWidth().insetCard(Group, c).padding(16.dp)) {
@@ -444,6 +446,32 @@ private fun UpdatesSection() {
                 is UpdateState.Error -> Icon(Icons.Rounded.WarningAmber, null, tint = c.red)
                 else -> {}
             }
+        }
+    }
+}
+
+@Composable
+private fun QuickButtonToggle() {
+    val c = LocalPalette.current
+    val ctx = LocalContext.current
+    var on by remember { mutableStateOf(Settings.quickButton(ctx)) }
+    Spacer(Modifier.height(22.dp))
+    SectionHeader("БЫСТРАЯ ЗАПИСЬ")
+    Column(Modifier.fillMaxWidth().insetCard(Group, c)) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 44.dp).padding(start = 16.dp, end = 12.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f).padding(end = 12.dp)) {
+                Text("Кнопка записи в шторке", color = c.label, fontSize = 17.sp)
+                Text("Уведомление с кнопкой записи — видно на экране блокировки", color = c.secondary, fontSize = 13.sp, lineHeight = 17.sp)
+            }
+            Switch(
+                checked = on,
+                onCheckedChange = {
+                    on = it
+                    Settings.setQuickButton(ctx, it)
+                    if (it) QuickControl.show(ctx) else QuickControl.hide(ctx)
+                },
+                colors = SwitchDefaults.colors(checkedTrackColor = c.green, checkedThumbColor = Color.White)
+            )
         }
     }
 }

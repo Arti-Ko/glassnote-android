@@ -24,6 +24,7 @@ object QuickControl {
     }
 
     fun show(ctx: Context) {
+        if (!com.sleepycoffee.glassnote.data.Settings.quickButton(ctx)) { hide(ctx); return }
         ensureChannel(ctx)
         val toggle = PendingIntent.getForegroundService(
             ctx, 10,

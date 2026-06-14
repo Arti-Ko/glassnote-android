@@ -30,6 +30,7 @@ object Settings {
     private const val PREF = "glassnote"
     private const val KEY_LANG = "recordingLanguage"
     private const val KEY_THEME = "themeMode"
+    private const val KEY_QUICK = "quickButton"
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences(PREF, Context.MODE_PRIVATE)
 
@@ -38,4 +39,7 @@ object Settings {
 
     fun themeMode(ctx: Context): ThemeMode = ThemeMode.from(prefs(ctx).getString(KEY_THEME, "system"))
     fun setThemeMode(ctx: Context, mode: ThemeMode) = prefs(ctx).edit().putString(KEY_THEME, mode.code).apply()
+
+    fun quickButton(ctx: Context): Boolean = prefs(ctx).getBoolean(KEY_QUICK, true)
+    fun setQuickButton(ctx: Context, on: Boolean) = prefs(ctx).edit().putBoolean(KEY_QUICK, on).apply()
 }

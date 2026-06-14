@@ -1,7 +1,12 @@
 package com.sleepycoffee.glassnote.update
 
+import android.app.DownloadManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.net.Uri
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.sleepycoffee.glassnote.BuildConfig
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +30,8 @@ sealed interface UpdateState {
     data class Error(val message: String) : UpdateState
 }
 
-/** Проверка/скачивание/установка обновлений через GitHub Releases. */
+/** Проверка через GitHub Releases; установка — через системный DownloadManager
+ *  (надёжно тянет редиректы GitHub) + системный установщик APK. */
 object UpdateChecker {
     private const val REPO = "Arti-Ko/glassnote-android"
     val currentVersion: String get() = BuildConfig.VERSION_NAME
@@ -63,45 +69,51 @@ object UpdateChecker {
                 } else if (manual) {
                     _state.value = UpdateState.UpToDate
                 }
-            }.onFailure { android.util.Log.w("GlassnoteUpd","check failed",it); if (manual) _state.value = UpdateState.Error(it.message ?: "ошибка сети") }
+            }.onFailure { android.util.Log.w("GlassnoteUpd", "check failed", it); if (manual) _state.value = UpdateState.Error(it.message ?: "ошибка сети") }
         }
     }
 
-    /** Скачивает APK и запускает системный установщик (auto-update для sideload). */
-    suspend fun install(ctx: Context) {
+    fun install(ctx: Context) {
         val info = _available.value ?: return
         val url = info.apkUrl
-        if (url == null) { openPage(ctx, info.pageUrl); return }
-        withContext(Dispatchers.IO) {
-            runCatching {
-                _state.value = UpdateState.Downloading(0)
-                val file = File(ctx.cacheDir, "glassnote-update.apk")
-                val conn = (URL(url).openConnection() as HttpURLConnection).apply {
-                    connectTimeout = 15_000; readTimeout = 30_000; instanceFollowRedirects = true; setRequestProperty("User-Agent", "Glassnote-Android")
-                }
-                val total = conn.contentLengthLong.takeIf { it > 0 } ?: -1L
-                conn.inputStream.use { input ->
-                    file.outputStream().use { out ->
-                        val buf = ByteArray(1 shl 16); var read: Int; var done = 0L
-                        while (input.read(buf).also { read = it } >= 0) {
-                            out.write(buf, 0, read); done += read
-                            if (total > 0) _state.value = UpdateState.Downloading((done * 100 / total).toInt())
-                        }
+        if (url == null) { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(info.pageUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); return }
+
+        _state.value = UpdateState.Downloading(0)
+        val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val target = File(ctx.getExternalFilesDir(null), "glassnote-update.apk")
+        target.delete()
+        val req = DownloadManager.Request(Uri.parse(url))
+            .setTitle("Glassnote ${info.version}")
+            .setDescription("Загрузка обновления")
+            .setMimeType("application/vnd.android.package-archive")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+            .setDestinationUri(Uri.fromFile(target))
+        val id = dm.enqueue(req)
+
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(c: Context, i: Intent) {
+                if (i.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L) != id) return
+                runCatching { c.unregisterReceiver(this) }
+                var ok = false
+                dm.query(DownloadManager.Query().setFilterById(id)).use { cur ->
+                    if (cur.moveToFirst()) {
+                        ok = cur.getInt(cur.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL
                     }
                 }
-                val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
-                val intent = Intent(Intent.ACTION_VIEW).apply {
+                // целостность: файл существует и начинается с ZIP-сигнатуры PK
+                val valid = ok && target.exists() && target.length() > 1_000_000 && runCatching {
+                    target.inputStream().use { it.read() == 0x50 && it.read() == 0x4B }
+                }.getOrDefault(false)
+                if (!valid) { _state.value = UpdateState.Error("Загрузка не удалась"); return }
+                val uri = FileProvider.getUriForFile(c, "${c.packageName}.fileprovider", target)
+                c.startActivity(Intent(Intent.ACTION_VIEW).apply {
                     setDataAndType(uri, "application/vnd.android.package-archive")
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                ctx.startActivity(intent)
+                })
                 _state.value = UpdateState.Available(info)
-            }.onFailure { _state.value = UpdateState.Error(it.message ?: "ошибка загрузки") }
+            }
         }
-    }
-
-    private fun openPage(ctx: Context, page: String) {
-        ctx.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(page)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        ContextCompat.registerReceiver(ctx, receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), ContextCompat.RECEIVER_EXPORTED)
     }
 
     private fun isNewer(remote: String, current: String): Boolean {
